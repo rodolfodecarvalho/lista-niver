@@ -1,0 +1,163 @@
+### Testes da API de Pessoas
+
+# Variáveis
+@baseUrl = http://localhost:8080/api/pessoas
+@contentType = application/json
+
+### 1. Criar nova pessoa
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "João Silva",
+  "dataNascimento": "1990-05-15"
+}
+
+### 2. Criar pessoa com validação - nome muito curto (deve falhar)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "J",
+  "dataNascimento": "1990-05-15"
+}
+
+### 3. Criar pessoa com validação - data futura (deve falhar)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Maria Santos",
+  "dataNascimento": "2030-01-01"
+}
+
+### 4. Buscar pessoa por ID
+GET {{baseUrl}}/1
+
+### 5. Buscar pessoa por ID inexistente
+GET {{baseUrl}}/999
+
+### 6. Listar todas as pessoas
+GET {{baseUrl}}
+
+### 7. Atualizar pessoa
+PUT {{baseUrl}}/1
+Content-Type: {{contentType}}
+
+{
+  "nome": "João Silva Atualizado",
+  "dataNascimento": "1990-05-15"
+}
+
+### 8. Atualizar pessoa inexistente
+PUT {{baseUrl}}/999
+Content-Type: {{contentType}}
+
+{
+  "nome": "Pessoa Inexistente",
+  "dataNascimento": "1985-10-20"
+}
+
+### 9. Buscar por nome
+GET {{baseUrl}}/buscar?nome=João
+
+### 10. Buscar por nome parcial
+GET {{baseUrl}}/buscar?nome=Silva
+
+### 11. Buscar por nome inexistente
+GET {{baseUrl}}/buscar?nome=Inexistente
+
+### 12. Deletar pessoa
+DELETE {{baseUrl}}/1
+
+### 13. Deletar pessoa inexistente
+DELETE {{baseUrl}}/999
+
+### 14. Verificar se pessoa foi deletada
+GET {{baseUrl}}/1
+
+### ===============================
+### Cenários de teste mais completos
+### ===============================
+
+### Criar múltiplas pessoas para teste
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Ana Costa",
+  "dataNascimento": "1985-03-10"
+}
+
+###
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Pedro Lima",
+  "dataNascimento": "1992-08-22"
+}
+
+###
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Carlos Oliveira",
+  "dataNascimento": "1988-12-05"
+}
+
+### Listar todas após criação
+GET {{baseUrl}}
+
+### Teste com nome no limite mínimo (2 caracteres)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Lu",
+  "dataNascimento": "1995-07-18"
+}
+
+### Teste com nome no limite máximo (100 caracteres)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Este é um nome muito longo para testar o limite máximo de caracteres permitido na validação",
+  "dataNascimento": "1991-04-25"
+}
+
+### Teste com dados inválidos - nome em branco
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "",
+  "dataNascimento": "1990-01-01"
+}
+
+### Teste com dados inválidos - nome null
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "dataNascimento": "1990-01-01"
+}
+
+### Teste com dados inválidos - data null
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Teste Nome"
+}
+
+### Teste com dados inválidos - formato de data incorreto
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Teste Data",
+  "dataNascimento": "01/01/1990"
+}
