@@ -9,7 +9,7 @@ POST {{baseUrl}}
 Content-Type: {{contentType}}
 
 {
-  "nome": "João Silva",
+  "nome": "João Silva3",
   "dataNascimento": "1990-05-15"
 }
 
@@ -160,4 +160,13 @@ Content-Type: {{contentType}}
 {
   "nome": "Teste Data",
   "dataNascimento": "01/01/1990"
+}
+
+### Teste com dados inválidos - nome e data em branco
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "",
+  "dataNascimento": ""
 }
