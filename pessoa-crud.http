@@ -308,3 +308,140 @@ Content-Type: {{contentType}}
     }
   ]
 }
+
+### ===============================
+### TESTES DA API DE EMAILS
+### ===============================
+
+@emailBaseUrl = http://localhost:8080/api/emails
+
+### 1. Adicionar email para pessoa existente
+POST {{emailBaseUrl}}/pessoa/1
+Content-Type: {{contentType}}
+
+{
+  "email": "novo.email@teste.com"
+}
+
+### 2. Adicionar email para pessoa inexistente (deve falhar)
+POST {{emailBaseUrl}}/pessoa/999
+Content-Type: {{contentType}}
+
+{
+  "email": "email@inexistente.com"
+}
+
+### 3. Adicionar email inválido (deve falhar)
+POST {{emailBaseUrl}}/pessoa/1
+Content-Type: {{contentType}}
+
+{
+  "email": "email-invalido"
+}
+
+### 4. Adicionar email em branco (deve falhar)
+POST {{emailBaseUrl}}/pessoa/1
+Content-Type: {{contentType}}
+
+{
+  "email": ""
+}
+
+### 5. Listar emails de pessoa existente
+GET {{emailBaseUrl}}/pessoa/1
+
+### 6. Listar emails de pessoa inexistente (deve falhar)
+GET {{emailBaseUrl}}/pessoa/999
+
+### 7. Buscar email por ID
+GET {{emailBaseUrl}}/1
+
+### 8. Buscar email por ID inexistente (deve falhar)
+GET {{emailBaseUrl}}/999
+
+### 9. Atualizar email existente
+PUT {{emailBaseUrl}}/1
+Content-Type: {{contentType}}
+
+{
+  "email": "email.atualizado@teste.com"
+}
+
+### 10. Atualizar email inexistente (deve falhar)
+PUT {{emailBaseUrl}}/999
+Content-Type: {{contentType}}
+
+{
+  "email": "email@teste.com"
+}
+
+### 11. Atualizar email com valor inválido (deve falhar)
+PUT {{emailBaseUrl}}/1
+Content-Type: {{contentType}}
+
+{
+  "email": "email-invalido"
+}
+
+### 12. Remover email existente
+DELETE {{emailBaseUrl}}/1
+
+### 13. Remover email inexistente (deve falhar)
+DELETE {{emailBaseUrl}}/999
+
+### 14. Verificar se email foi removido
+GET {{emailBaseUrl}}/1
+
+### ===============================
+### CENÁRIOS COMPLETOS DE TESTE
+### ===============================
+
+### Criar pessoa para testes de email
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Teste Email API",
+  "dataNascimento": "1990-01-01",
+  "emails": [
+    {
+      "email": "inicial@teste.com"
+    }
+  ]
+}
+
+### Adicionar múltiplos emails para a mesma pessoa
+POST {{emailBaseUrl}}/pessoa/2
+Content-Type: {{contentType}}
+
+{
+  "email": "segundo@teste.com"
+}
+
+###
+POST {{emailBaseUrl}}/pessoa/2
+Content-Type: {{contentType}}
+
+{
+  "email": "terceiro@teste.com"
+}
+
+### Listar todos os emails da pessoa
+GET {{emailBaseUrl}}/pessoa/2
+
+### Atualizar um dos emails
+PUT {{emailBaseUrl}}/2
+Content-Type: {{contentType}}
+
+{
+  "email": "segundo.atualizado@teste.com"
+}
+
+### Verificar atualização
+GET {{emailBaseUrl}}/2
+
+### Remover um email
+DELETE {{emailBaseUrl}}/3
+
+### Verificar remoção
+GET {{emailBaseUrl}}/pessoa/2
