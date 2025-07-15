@@ -1,11 +1,14 @@
 package com.rodolfo.listaniver.service;
 
+import com.rodolfo.listaniver.dto.EmailInputDTO;
 import com.rodolfo.listaniver.dto.PessoaInputDTO;
 import com.rodolfo.listaniver.dto.PessoaOutputDTO;
 import com.rodolfo.listaniver.dto.PessoaUpdateDTO;
+import com.rodolfo.listaniver.entity.Email;
 import com.rodolfo.listaniver.entity.Pessoa;
 import com.rodolfo.listaniver.exception.DuplicatePessoaException;
 import com.rodolfo.listaniver.exception.RecordNotFoundException;
+import com.rodolfo.listaniver.repository.EmailRepository;
 import com.rodolfo.listaniver.repository.PessoaRepository;
 import com.rodolfo.listaniver.service.impl.PessoaServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -30,6 +34,9 @@ public class PessoaServiceTest {
     @Mock
     private PessoaRepository repository;
 
+    @Mock
+    private EmailRepository emailRepository;
+
     @InjectMocks
     private PessoaServiceImpl service;
 
@@ -39,13 +46,20 @@ public class PessoaServiceTest {
 
     @BeforeEach
     void setUp() {
+        Email email = new Email();
+        email.setId(1L);
+        email.setEmail("joao@email.com");
+        
         pessoa = new Pessoa();
         pessoa.setId(1L);
         pessoa.setNome("João Silva");
         pessoa.setDataNascimento(LocalDate.of(1990, 5, 15));
+        pessoa.setEmails(Set.of(email));
+        email.setPessoa(pessoa);
 
-        inputDTO = new PessoaInputDTO("João Silva", LocalDate.of(1990, 5, 15));
-        updateDTO = new PessoaUpdateDTO("João Santos", LocalDate.of(1990, 5, 15));
+        Set<EmailInputDTO> emailsInput = Set.of(new EmailInputDTO("joao@email.com"));
+        inputDTO = new PessoaInputDTO("João Silva", LocalDate.of(1990, 5, 15), emailsInput);
+        updateDTO = new PessoaUpdateDTO("João Santos", LocalDate.of(1990, 5, 15), emailsInput);
     }
 
     @Test
@@ -62,6 +76,8 @@ public class PessoaServiceTest {
         assertEquals(pessoa.getId(), result.id());
         assertEquals(pessoa.getNome(), result.nome());
         assertEquals(pessoa.getDataNascimento(), result.dataNascimento());
+        assertEquals(1, result.emails().size());
+        assertEquals("joao@email.com", result.emails().iterator().next().email());
 
         verify(repository).existsByNomeAndDataNascimento(inputDTO.nome(), inputDTO.dataNascimento());
         verify(repository).save(any(Pessoa.class));
@@ -92,6 +108,8 @@ public class PessoaServiceTest {
         assertEquals(pessoa.getId(), result.id());
         assertEquals(pessoa.getNome(), result.nome());
         assertEquals(pessoa.getDataNascimento(), result.dataNascimento());
+        assertEquals(1, result.emails().size());
+        assertEquals("joao@email.com", result.emails().iterator().next().email());
 
         verify(repository).findById(1L);
     }
@@ -130,6 +148,7 @@ public class PessoaServiceTest {
         when(repository.findById(anyLong())).thenReturn(Optional.of(pessoa));
         when(repository.existsByNomeAndDataNascimento(anyString(), any(LocalDate.class))).thenReturn(false);
         when(repository.save(any(Pessoa.class))).thenReturn(pessoa);
+        doNothing().when(emailRepository).deleteByPessoaId(anyLong());
 
         // When
         PessoaOutputDTO result = service.atualizar(1L, updateDTO);

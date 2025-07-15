@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDate;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public record PessoaOutputDTO(
         @NotNull
@@ -15,13 +17,22 @@ public record PessoaOutputDTO(
         String nome,
 
         @NotNull
-        LocalDate dataNascimento
+        LocalDate dataNascimento,
+
+        Set<EmailOutputDTO> emails
 ) {
     public static PessoaOutputDTO fromEntity(Pessoa pessoa) {
+        Set<EmailOutputDTO> emailsDto = pessoa.getEmails() != null
+                ? pessoa.getEmails().stream()
+                .map(EmailOutputDTO::fromEntity)
+                .collect(Collectors.toSet())
+                : Set.of();
+
         return new PessoaOutputDTO(
                 pessoa.getId(),
                 pessoa.getNome(),
-                pessoa.getDataNascimento()
+                pessoa.getDataNascimento(),
+                emailsDto
         );
     }
 }

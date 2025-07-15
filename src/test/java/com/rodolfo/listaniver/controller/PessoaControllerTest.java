@@ -1,9 +1,8 @@
 package com.rodolfo.listaniver.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rodolfo.listaniver.dto.PessoaInputDTO;
-import com.rodolfo.listaniver.dto.PessoaOutputDTO;
-import com.rodolfo.listaniver.dto.PessoaUpdateDTO;
+import com.rodolfo.listaniver.controller.impl.PessoaControllerImpl;
+import com.rodolfo.listaniver.dto.*;
 import com.rodolfo.listaniver.service.PessoaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(PessoaController.class)
+@WebMvcTest(PessoaControllerImpl.class)
 @DisplayName("Testes do Controller de Pessoa")
 public class PessoaControllerTest {
 
@@ -43,9 +43,12 @@ public class PessoaControllerTest {
 
     @BeforeEach
     void setUp() {
-        inputDTO = new PessoaInputDTO("João Silva", LocalDate.of(1990, 5, 15));
-        outputDTO = new PessoaOutputDTO(1L, "João Silva", LocalDate.of(1990, 5, 15));
-        updateDTO = new PessoaUpdateDTO("João Santos", LocalDate.of(1990, 5, 15));
+        Set<EmailInputDTO> emailsInput = Set.of(new EmailInputDTO("joao@email.com"));
+        Set<EmailOutputDTO> emailsOutput = Set.of(new EmailOutputDTO(1L, "joao@email.com", 1L));
+        
+        inputDTO = new PessoaInputDTO("João Silva", LocalDate.of(1990, 5, 15), emailsInput);
+        outputDTO = new PessoaOutputDTO(1L, "João Silva", LocalDate.of(1990, 5, 15), emailsOutput);
+        updateDTO = new PessoaUpdateDTO("João Santos", LocalDate.of(1990, 5, 15), emailsInput);
     }
 
     @Test
@@ -64,9 +67,9 @@ public class PessoaControllerTest {
     }
 
     @Test
-    void deveRetornarBadRequestParaDadosInvalidos() throws Exception {
+    void deveRetornarUnprocessableEntityParaDadosInvalidos() throws Exception {
         // Given
-        PessoaInputDTO invalidDTO = new PessoaInputDTO("", LocalDate.now().plusDays(1));
+        PessoaInputDTO invalidDTO = new PessoaInputDTO("", LocalDate.now().plusDays(1), Set.of(new EmailInputDTO("invalid@email.com")));
 
         // When & Then
         mockMvc.perform(post("/api/pessoas")
@@ -103,7 +106,8 @@ public class PessoaControllerTest {
     @Test
     void deveAtualizarPessoaComSucesso() throws Exception {
         // Given
-        PessoaOutputDTO updatedOutput = new PessoaOutputDTO(1L, "João Santos", LocalDate.of(1990, 5, 15));
+        Set<EmailOutputDTO> emailsOutput = Set.of(new EmailOutputDTO(1L, "joao@email.com", 1L));
+        PessoaOutputDTO updatedOutput = new PessoaOutputDTO(1L, "João Santos", LocalDate.of(1990, 5, 15), emailsOutput);
         when(service.atualizar(anyLong(), any(PessoaUpdateDTO.class))).thenReturn(updatedOutput);
 
         // When & Then

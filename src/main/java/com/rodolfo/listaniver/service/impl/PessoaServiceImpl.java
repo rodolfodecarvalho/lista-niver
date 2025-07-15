@@ -6,6 +6,7 @@ import com.rodolfo.listaniver.dto.PessoaUpdateDTO;
 import com.rodolfo.listaniver.entity.Pessoa;
 import com.rodolfo.listaniver.exception.DuplicatePessoaException;
 import com.rodolfo.listaniver.exception.RecordNotFoundException;
+import com.rodolfo.listaniver.repository.EmailRepository;
 import com.rodolfo.listaniver.repository.PessoaRepository;
 import com.rodolfo.listaniver.service.PessoaService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import static com.rodolfo.listaniver.dto.PessoaOutputDTO.fromEntity;
 public class PessoaServiceImpl implements PessoaService {
 
     private final PessoaRepository repository;
+    private final EmailRepository emailRepository;
 
     @Override
     public PessoaOutputDTO criar(PessoaInputDTO inputDTO) {
@@ -36,7 +38,9 @@ public class PessoaServiceImpl implements PessoaService {
         Pessoa pessoa = new Pessoa();
         pessoa.setNome(inputDTO.nome());
         pessoa.setDataNascimento(inputDTO.dataNascimento());
+        pessoa.setEmails(pessoa.convertEmailInputDTOsToEmails(inputDTO.emails()));
 
+        // Salva a pessoa primeiro
         Pessoa savedPessoa = repository.save(pessoa);
 
         log.info("Pessoa criada com sucesso: ID {}", savedPessoa.getId());
@@ -80,6 +84,10 @@ public class PessoaServiceImpl implements PessoaService {
 
         pessoa.setNome(updateDTO.nome());
         pessoa.setDataNascimento(updateDTO.dataNascimento());
+
+        emailRepository.deleteByPessoaId(pessoa.getId());
+
+        pessoa.setEmails(pessoa.convertEmailInputDTOsToEmails(updateDTO.emails()));
 
         Pessoa updatedPessoa = repository.save(pessoa);
 

@@ -4,89 +4,159 @@
 @baseUrl = http://localhost:8080/api/pessoas
 @contentType = application/json
 
-### 1. Criar nova pessoa
+### 1. Criar nova pessoa com email
 POST {{baseUrl}}
 Content-Type: {{contentType}}
 
 {
-  "nome": "João Silva3",
-  "dataNascimento": "1990-05-15"
+  "nome": "João Silva",
+  "dataNascimento": "1990-05-15",
+  "emails": [
+    {
+      "email": "joao.silva@email.com"
+    }
+  ]
 }
 
-### 2. Criar pessoa com validação - nome muito curto (deve falhar)
-POST {{baseUrl}}
-Content-Type: {{contentType}}
-
-{
-  "nome": "J",
-  "dataNascimento": "1990-05-15"
-}
-
-### 3. Criar pessoa com validação - data futura (deve falhar)
+### 2. Criar pessoa com múltiplos emails
 POST {{baseUrl}}
 Content-Type: {{contentType}}
 
 {
   "nome": "Maria Santos",
-  "dataNascimento": "2030-01-01"
+  "dataNascimento": "1985-03-10",
+  "emails": [
+    {
+      "email": "maria@email.com"
+    },
+    {
+      "email": "maria.santos@trabalho.com"
+    }
+  ]
 }
 
-### 4. Buscar pessoa por ID
+### 3. Criar pessoa sem emails
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Pedro Lima",
+  "dataNascimento": "1992-08-22",
+  "emails": []
+}
+
+### 4. Criar pessoa com validação - nome muito curto (deve falhar)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "J",
+  "dataNascimento": "1990-05-15",
+  "emails": []
+}
+
+### 5. Criar pessoa com validação - data futura (deve falhar)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Teste Futuro",
+  "dataNascimento": "2030-01-01",
+  "emails": [
+    {
+      "email": "teste@email.com"
+    }
+  ]
+}
+
+### 6. Criar pessoa com email inválido (deve falhar)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Teste Email",
+  "dataNascimento": "1990-01-01",
+  "emails": [
+    {
+      "email": "email-invalido"
+    }
+  ]
+}
+
+### 7. Buscar pessoa por ID
 GET {{baseUrl}}/1
 
-### 5. Buscar pessoa por ID inexistente
+### 8. Buscar pessoa por ID inexistente
 GET {{baseUrl}}/999
 
-### 6. Listar todas as pessoas
+### 9. Listar todas as pessoas
 GET {{baseUrl}}
 
-### 7. Atualizar pessoa
+### 10. Atualizar pessoa com novos emails
 PUT {{baseUrl}}/1
 Content-Type: {{contentType}}
 
 {
-  "nome": "João Silva Atualizado",
-  "dataNascimento": "1990-05-15"
+  "nome": "João Silva Atualizado3",
+  "dataNascimento": "1990-05-15",
+  "emails": [
+    {
+      "email": "joao.atualizado3@email.com"
+    },
+    {
+      "email": "joao.novo3@email.com"
+    }
+  ]
 }
 
-### 8. Atualizar pessoa inexistente
+### 11. Atualizar pessoa inexistente
 PUT {{baseUrl}}/999
 Content-Type: {{contentType}}
 
 {
   "nome": "Pessoa Inexistente",
-  "dataNascimento": "1985-10-20"
+  "dataNascimento": "1985-10-20",
+  "emails": [
+    {
+      "email": "inexistente@email.com"
+    }
+  ]
 }
 
-### 9. Buscar por nome
+### 12. Buscar por nome
 GET {{baseUrl}}/buscar?nome=João
 
-### 10. Buscar por nome parcial
+### 13. Buscar por nome parcial
 GET {{baseUrl}}/buscar?nome=Silva
 
-### 11. Buscar por nome inexistente
+### 14. Buscar por nome inexistente
 GET {{baseUrl}}/buscar?nome=Inexistente
 
-### 12. Deletar pessoa
+### 15. Deletar pessoa
 DELETE {{baseUrl}}/1
 
-### 13. Deletar pessoa inexistente
+### 16. Deletar pessoa inexistente
 DELETE {{baseUrl}}/999
 
-### 14. Verificar se pessoa foi deletada
+### 17. Verificar se pessoa foi deletada
 GET {{baseUrl}}/1
 
 ### ===============================
 ### Cenários de teste mais completos
 ### ===============================
 
-### Criar múltiplas pessoas para teste
+### Criar múltiplas pessoas para teste com emails
 POST {{baseUrl}}
 Content-Type: {{contentType}}
 
 {
   "nome": "Ana Costa",
-  "dataNascimento": "1985-03-10"
+  "dataNascimento": "1985-03-10",
+  "emails": [
+    {
+      "email": "ana.costa@email.com"
+    }
+  ]
 }
 
 ###
@@ -95,7 +165,15 @@ Content-Type: {{contentType}}
 
 {
   "nome": "Pedro Lima",
-  "dataNascimento": "1992-08-22"
+  "dataNascimento": "1992-08-22",
+  "emails": [
+    {
+      "email": "pedro@email.com"
+    },
+    {
+      "email": "pedro.lima@trabalho.com"
+    }
+  ]
 }
 
 ###
@@ -104,28 +182,39 @@ Content-Type: {{contentType}}
 
 {
   "nome": "Carlos Oliveira",
-  "dataNascimento": "1988-12-05"
+  "dataNascimento": "1988-12-05",
+  "emails": []
 }
 
 ### Listar todas após criação
 GET {{baseUrl}}
 
-### Teste com nome no limite mínimo (2 caracteres)
+### Teste com nome no limite mínimo (2 caracteres) e email
 POST {{baseUrl}}
 Content-Type: {{contentType}}
 
 {
   "nome": "Lu",
-  "dataNascimento": "1995-07-18"
+  "dataNascimento": "1995-07-18",
+  "emails": [
+    {
+      "email": "lu@email.com"
+    }
+  ]
 }
 
-### Teste com nome no limite máximo (100 caracteres)
+### Teste com nome no limite máximo (100 caracteres) e email
 POST {{baseUrl}}
 Content-Type: {{contentType}}
 
 {
   "nome": "Este é um nome muito longo para testar o limite máximo de caracteres permitido na validação",
-  "dataNascimento": "1991-04-25"
+  "dataNascimento": "1991-04-25",
+  "emails": [
+    {
+      "email": "nome.longo@email.com"
+    }
+  ]
 }
 
 ### Teste com dados inválidos - nome em branco
@@ -134,7 +223,12 @@ Content-Type: {{contentType}}
 
 {
   "nome": "",
-  "dataNascimento": "1990-01-01"
+  "dataNascimento": "1990-01-01",
+  "emails": [
+    {
+      "email": "teste@email.com"
+    }
+  ]
 }
 
 ### Teste com dados inválidos - nome null
@@ -142,7 +236,12 @@ POST {{baseUrl}}
 Content-Type: {{contentType}}
 
 {
-  "dataNascimento": "1990-01-01"
+  "dataNascimento": "1990-01-01",
+  "emails": [
+    {
+      "email": "teste@email.com"
+    }
+  ]
 }
 
 ### Teste com dados inválidos - data null
@@ -150,7 +249,12 @@ POST {{baseUrl}}
 Content-Type: {{contentType}}
 
 {
-  "nome": "Teste Nome"
+  "nome": "Teste Nome",
+  "emails": [
+    {
+      "email": "teste@email.com"
+    }
+  ]
 }
 
 ### Teste com dados inválidos - formato de data incorreto
@@ -159,7 +263,12 @@ Content-Type: {{contentType}}
 
 {
   "nome": "Teste Data",
-  "dataNascimento": "01/01/1990"
+  "dataNascimento": "01/01/1990",
+  "emails": [
+    {
+      "email": "teste@email.com"
+    }
+  ]
 }
 
 ### Teste com dados inválidos - nome e data em branco
@@ -168,5 +277,34 @@ Content-Type: {{contentType}}
 
 {
   "nome": "",
-  "dataNascimento": ""
+  "dataNascimento": "",
+  "emails": []
+}
+
+### Teste com email muito longo (deve falhar)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Teste Email Longo",
+  "dataNascimento": "1990-01-01",
+  "emails": [
+    {
+      "email": "este.email.eh.muito.longo.para.testar.o.limite.maximo.de.caracteres.permitido.na.validacao@dominio.muito.longo.com"
+    }
+  ]
+}
+
+### Teste com email em branco (deve falhar)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Teste Email Branco",
+  "dataNascimento": "1990-01-01",
+  "emails": [
+    {
+      "email": ""
+    }
+  ]
 }
