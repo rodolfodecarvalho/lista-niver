@@ -1,9 +1,9 @@
 -- Criação do banco de dados (caso não exista)
-CREATE SCHEMA IF NOT EXISTS pessoa_db;
+CREATE SCHEMA IF NOT EXISTS lista_db;
 
 
 -- Definir o schema como padrão para este script
-SET search_path TO pessoa_db, public;
+SET search_path TO lista_db, public;
 
 -- Criação da tabela pessoa (será criada automaticamente pelo Hibernate, mas deixamos como referência)
 
