@@ -89,16 +89,6 @@ public class PessoaServiceImpl implements PessoaService {
         log.info("Pessoa deletada com sucesso: ID {}", id);
     }
 
-
-
-    private void updatePessoaData(Pessoa pessoa, PessoaUpdateDTO updateDTO) {
-        pessoa.setNome(updateDTO.nome());
-        pessoa.setDataNascimento(updateDTO.dataNascimento());
-        
-        emailRepository.deleteByPessoaId(pessoa.getId());
-        pessoa.setEmails(mapper.convertEmailInputDTOsToEmails(updateDTO.emails(), pessoa));
-    }
-
     @Override
     @Transactional(readOnly = true)
     public List<PessoaOutputDTO> buscarPorNome(String nome) {
@@ -108,5 +98,13 @@ public class PessoaServiceImpl implements PessoaService {
                 .stream()
                 .map(PessoaOutputDTO::fromEntity)
                 .toList();
+    }
+
+    private void updatePessoaData(Pessoa pessoa, PessoaUpdateDTO updateDTO) {
+        pessoa.setNome(updateDTO.nome());
+        pessoa.setDataNascimento(updateDTO.dataNascimento());
+
+        emailRepository.deleteByPessoaId(pessoa.getId());
+        pessoa.setEmails(mapper.convertEmailInputDTOsToEmails(updateDTO.emails(), pessoa));
     }
 }
