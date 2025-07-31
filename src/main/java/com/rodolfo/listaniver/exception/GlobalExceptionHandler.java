@@ -60,31 +60,42 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ProblemDetail> methodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        log.error("method=methodArgumentNotValidException, step=unprocessable-entity, e={}", ex.getMessage());
+    public ResponseEntity<ProblemDetail> handleValidationException(MethodArgumentNotValidException ex) {
+        log.error("Erro de validação: {}", ex.getMessage());
 
-        Map<String, String> errors = new HashMap<>();
+        Map<String, String> errors = extractValidationErrors(ex);
+        String details = buildErrorDetails(ex);
 
-        String details = getErrorsDetails(ex);
-
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
-        problemDetail.setTitle("Validation error");
-        problemDetail.setType(URI.create("errors/unprocessable-entity"));
-        problemDetail.setProperty("timestamp", Instant.now());
-        problemDetail.setDetail(details);
-
-        ex.getBindingResult().getAllErrors().forEach(error -> errors.put(((FieldError) error).getField(), error.getDefaultMessage()));
-
-        problemDetail.setProperty("errors", errors);
+        ProblemDetail problemDetail = createValidationProblemDetail(details, errors);
 
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
     }
 
-    private String getErrorsDetails(MethodArgumentNotValidException ex) {
+    private Map<String, String> extractValidationErrors(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach(error -> 
+            errors.put(((FieldError) error).getField(), error.getDefaultMessage())
+        );
+        return errors;
+    }
+
+    private ProblemDetail createValidationProblemDetail(String details, Map<String, String> errors) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.UNPROCESSABLE_ENTITY, "Erro de validação"
+        );
+        problemDetail.setTitle("Validation error");
+        problemDetail.setType(URI.create("errors/unprocessable-entity"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setDetail(details);
+        problemDetail.setProperty("errors", errors);
+        return problemDetail;
+    }
+
+    private String buildErrorDetails(MethodArgumentNotValidException ex) {
         return Optional.of(ex.getDetailMessageArguments())
                 .map(args -> Arrays.stream(args)
                         .filter(msg -> !ObjectUtils.isEmpty(msg))
-                        .reduce("Please make sure to provide a valid request", (a, b) -> a + " " + b)
+                        .reduce("Certifique-se de fornecer uma requisição válida", (a, b) -> a + " " + b)
                 )
                 .orElse("").toString();
     }

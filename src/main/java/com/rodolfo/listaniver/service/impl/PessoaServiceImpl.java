@@ -4,11 +4,12 @@ import com.rodolfo.listaniver.dto.PessoaInputDTO;
 import com.rodolfo.listaniver.dto.PessoaOutputDTO;
 import com.rodolfo.listaniver.dto.PessoaUpdateDTO;
 import com.rodolfo.listaniver.entity.Pessoa;
-import com.rodolfo.listaniver.exception.DuplicatePessoaException;
 import com.rodolfo.listaniver.exception.RecordNotFoundException;
+import com.rodolfo.listaniver.mapper.PessoaMapper;
 import com.rodolfo.listaniver.repository.EmailRepository;
 import com.rodolfo.listaniver.repository.PessoaRepository;
 import com.rodolfo.listaniver.service.PessoaService;
+import com.rodolfo.listaniver.validator.PessoaValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,21 +27,16 @@ public class PessoaServiceImpl implements PessoaService {
 
     private final PessoaRepository repository;
     private final EmailRepository emailRepository;
+    private final PessoaMapper mapper;
+    private final PessoaValidator validator;
 
     @Override
     public PessoaOutputDTO criar(PessoaInputDTO inputDTO) {
         log.info("Criando nova pessoa: {}", inputDTO.nome());
 
-        if (repository.existsByNomeAndDataNascimento(inputDTO.nome(), inputDTO.dataNascimento())) {
-            throw new DuplicatePessoaException("Pessoa com nome e data de nascimento já existe");
-        }
+        validator.validateDuplicatePessoa(inputDTO.nome(), inputDTO.dataNascimento());
 
-        Pessoa pessoa = new Pessoa();
-        pessoa.setNome(inputDTO.nome());
-        pessoa.setDataNascimento(inputDTO.dataNascimento());
-        pessoa.setEmails(pessoa.convertEmailInputDTOsToEmails(inputDTO.emails()));
-
-        // Salva a pessoa primeiro
+        Pessoa pessoa = mapper.toEntity(inputDTO);
         Pessoa savedPessoa = repository.save(pessoa);
 
         log.info("Pessoa criada com sucesso: ID {}", savedPessoa.getId());
@@ -73,22 +69,10 @@ public class PessoaServiceImpl implements PessoaService {
     public PessoaOutputDTO atualizar(Long id, PessoaUpdateDTO updateDTO) {
         log.info("Atualizando pessoa ID: {}", id);
 
-        Pessoa pessoa = repository.findById(id)
-                .orElseThrow(() -> new RecordNotFoundException("Pessoa", id));
+        Pessoa pessoa = validator.findPessoaById(id);
+        validator.validateDuplicatePessoaForUpdate(pessoa, updateDTO.nome(), updateDTO.dataNascimento());
 
-        // Verifica se já existe outra pessoa com o mesmo nome e data de nascimento
-        if (repository.existsByNomeAndDataNascimento(updateDTO.nome(), updateDTO.dataNascimento()) &&
-                (!pessoa.getNome().equals(updateDTO.nome()) || !pessoa.getDataNascimento().equals(updateDTO.dataNascimento()))) {
-            throw new DuplicatePessoaException("Pessoa com nome e data de nascimento já existe");
-        }
-
-        pessoa.setNome(updateDTO.nome());
-        pessoa.setDataNascimento(updateDTO.dataNascimento());
-
-        emailRepository.deleteByPessoaId(pessoa.getId());
-
-        pessoa.setEmails(pessoa.convertEmailInputDTOsToEmails(updateDTO.emails()));
-
+        updatePessoaData(pessoa, updateDTO);
         Pessoa updatedPessoa = repository.save(pessoa);
 
         log.info("Pessoa atualizada com sucesso: ID {}", updatedPessoa.getId());
@@ -99,12 +83,20 @@ public class PessoaServiceImpl implements PessoaService {
     public void deletar(Long id) {
         log.info("Deletando pessoa ID: {}", id);
 
-        if (!repository.existsById(id)) {
-            throw new RecordNotFoundException("Pessoa", id);
-        }
-
+        validator.validatePessoaExists(id);
         repository.deleteById(id);
+        
         log.info("Pessoa deletada com sucesso: ID {}", id);
+    }
+
+
+
+    private void updatePessoaData(Pessoa pessoa, PessoaUpdateDTO updateDTO) {
+        pessoa.setNome(updateDTO.nome());
+        pessoa.setDataNascimento(updateDTO.dataNascimento());
+        
+        emailRepository.deleteByPessoaId(pessoa.getId());
+        pessoa.setEmails(mapper.convertEmailInputDTOsToEmails(updateDTO.emails(), pessoa));
     }
 
     @Override
