@@ -8,7 +8,6 @@ import com.rodolfo.listaniver.service.PessoaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -60,7 +59,7 @@ public class PessoaControllerImpl implements PessoaController {
 
     @GetMapping("/buscar")
     public ResponseEntity<List<PessoaOutputDTO>> buscarPorNome(@RequestParam String nome) {
-        log.info("Requisição para buscar pessoas por nome: {}", StringUtils.replaceChars(nome, "\r\n", "__"));
+        log.info("Requisição para buscar pessoas por nome: {}", nome);
         List<PessoaOutputDTO> result = service.buscarPorNome(nome);
         return ResponseEntity.ok(result);
     }
