@@ -8,9 +8,11 @@ import com.rodolfo.listaniver.entity.Email;
 import com.rodolfo.listaniver.entity.Pessoa;
 import com.rodolfo.listaniver.exception.DuplicatePessoaException;
 import com.rodolfo.listaniver.exception.RecordNotFoundException;
+import com.rodolfo.listaniver.mapper.PessoaMapper;
 import com.rodolfo.listaniver.repository.EmailRepository;
 import com.rodolfo.listaniver.repository.PessoaRepository;
 import com.rodolfo.listaniver.service.impl.PessoaServiceImpl;
+import com.rodolfo.listaniver.validator.PessoaValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +38,12 @@ public class PessoaServiceTest {
 
     @Mock
     private EmailRepository emailRepository;
+
+    @Mock
+    private PessoaMapper mapper;
+
+    @Mock
+    private PessoaValidator validator;
 
     @InjectMocks
     private PessoaServiceImpl service;
@@ -65,7 +73,8 @@ public class PessoaServiceTest {
     @Test
     void deveCriarPessoaComSucesso() {
         // Given
-        when(repository.existsByNomeAndDataNascimento(anyString(), any(LocalDate.class))).thenReturn(false);
+        doNothing().when(validator).validateDuplicatePessoa(anyString(), any(LocalDate.class));
+        when(mapper.toEntity(any(PessoaInputDTO.class))).thenReturn(pessoa);
         when(repository.save(any(Pessoa.class))).thenReturn(pessoa);
 
         // When
@@ -79,19 +88,20 @@ public class PessoaServiceTest {
         assertEquals(1, result.emails().size());
         assertEquals("joao@email.com", result.emails().iterator().next().email());
 
-        verify(repository).existsByNomeAndDataNascimento(inputDTO.nome(), inputDTO.dataNascimento());
+        verify(validator).validateDuplicatePessoa(inputDTO.nome(), inputDTO.dataNascimento());
+        verify(mapper).toEntity(inputDTO);
         verify(repository).save(any(Pessoa.class));
     }
 
     @Test
     void deveLancarExcecaoAoCriarPessoaDuplicada() {
         // Given
-        when(repository.existsByNomeAndDataNascimento(anyString(), any(LocalDate.class))).thenReturn(true);
+        doThrow(new DuplicatePessoaException("Pessoa duplicada")).when(validator).validateDuplicatePessoa(anyString(), any(LocalDate.class));
 
         // When & Then
         assertThrows(DuplicatePessoaException.class, () -> service.criar(inputDTO));
 
-        verify(repository).existsByNomeAndDataNascimento(inputDTO.nome(), inputDTO.dataNascimento());
+        verify(validator).validateDuplicatePessoa(inputDTO.nome(), inputDTO.dataNascimento());
         verify(repository, never()).save(any(Pessoa.class));
     }
 
@@ -145,55 +155,57 @@ public class PessoaServiceTest {
     @Test
     void deveAtualizarPessoaComSucesso() {
         // Given
-        when(repository.findById(anyLong())).thenReturn(Optional.of(pessoa));
-        when(repository.existsByNomeAndDataNascimento(anyString(), any(LocalDate.class))).thenReturn(false);
+        when(validator.findPessoaById(anyLong())).thenReturn(pessoa);
+        doNothing().when(validator).validateDuplicatePessoaForUpdate(any(Pessoa.class), anyString(), any(LocalDate.class));
         when(repository.save(any(Pessoa.class))).thenReturn(pessoa);
         doNothing().when(emailRepository).deleteByPessoaId(anyLong());
+        when(mapper.convertEmailInputDTOsToEmails(any(), any(Pessoa.class))).thenReturn(Set.of());
 
         // When
         PessoaOutputDTO result = service.atualizar(1L, updateDTO);
 
         // Then
         assertNotNull(result);
-        verify(repository).findById(1L);
+        verify(validator).findPessoaById(1L);
+        verify(validator).validateDuplicatePessoaForUpdate(pessoa, updateDTO.nome(), updateDTO.dataNascimento());
         verify(repository).save(any(Pessoa.class));
     }
 
     @Test
     void deveLancarExcecaoAoAtualizarPessoaInexistente() {
         // Given
-        when(repository.findById(anyLong())).thenReturn(Optional.empty());
+        when(validator.findPessoaById(anyLong())).thenThrow(new RecordNotFoundException("Pessoa", 1L));
 
         // When & Then
         assertThrows(RecordNotFoundException.class, () -> service.atualizar(1L, updateDTO));
 
-        verify(repository).findById(1L);
+        verify(validator).findPessoaById(1L);
         verify(repository, never()).save(any(Pessoa.class));
     }
 
     @Test
     void deveDeletarPessoaComSucesso() {
         // Given
-        when(repository.existsById(anyLong())).thenReturn(true);
+        doNothing().when(validator).validatePessoaExists(anyLong());
         doNothing().when(repository).deleteById(anyLong());
 
         // When
         service.deletar(1L);
 
         // Then
-        verify(repository).existsById(1L);
+        verify(validator).validatePessoaExists(1L);
         verify(repository).deleteById(1L);
     }
 
     @Test
     void deveLancarExcecaoAoDeletarPessoaInexistente() {
         // Given
-        when(repository.existsById(anyLong())).thenReturn(false);
+        doThrow(new RecordNotFoundException("Pessoa", 1L)).when(validator).validatePessoaExists(anyLong());
 
         // When & Then
         assertThrows(RecordNotFoundException.class, () -> service.deletar(1L));
 
-        verify(repository).existsById(1L);
+        verify(validator).validatePessoaExists(1L);
         verify(repository, never()).deleteById(anyLong());
     }
 
