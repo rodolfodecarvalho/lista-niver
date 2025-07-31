@@ -3,28 +3,46 @@ version: '3.8'
 services:
   postgresql:
     image: postgres:17.5
-    container_name: pessoa-db
+    container_name: lista-db
     environment:
-      POSTGRES_DB: pessoa_db
+      POSTGRES_DB: lista_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./src/main/resources/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     networks:
-      - pessoa-network
+      - lista-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
+  app:
+    build: .
+    container_name: lista-app
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/lista_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8080:8080"
+    networks:
+      - lista-network
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
 
 volumes:
   postgres_data:
     driver: local
 
 networks:
-  pessoa-network:
+  lista-network:
     driver: bridge
