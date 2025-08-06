@@ -1,0 +1,23 @@
+@echo off
+echo Parando containers existentes...
+docker-compose down
+
+echo Removendo imagens antigas...
+docker rmi lista-niver-app 2>nul
+
+echo Construindo e iniciando containers...
+docker-compose up --build -d
+
+echo Aguardando inicializacao...
+timeout /t 30
+
+echo Verificando status dos containers...
+docker-compose ps
+
+echo Verificando logs da aplicacao...
+docker-compose logs app
+
+echo Testando endpoint de health...
+curl -f http://localhost:8080/actuator/health || echo "Health check falhou"
+
+echo Script concluido!

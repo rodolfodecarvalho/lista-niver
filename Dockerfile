@@ -55,4 +55,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
 
 # Comando para executar a aplicação
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dspring.profiles.active=docker -jar app.jar"]

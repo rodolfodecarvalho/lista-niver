@@ -27,10 +27,11 @@ services:
       postgresql:
         condition: service_healthy
     environment:
+      - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/lista_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
     ports:
       - "8080:8080"
     networks:
